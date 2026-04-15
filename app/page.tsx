@@ -84,7 +84,7 @@ export default function ProductionLoggingPage() {
           factoryName: item.factory_name,
           batchType: item.batch_type,
           goodQuantity: item.quantity_good,
-          damagedQuantity: item.quantity_damage,
+          damagedQuantity: item.quantity_damaged,
           timestamp: item.created_at
         }));
         setLogs(mappedLogs);
@@ -135,7 +135,7 @@ export default function ProductionLoggingPage() {
           factory_name: newLog.factoryName,
           batch_type: newLog.batchType,
           quantity_good: newLog.goodQuantity,
-          quantity_damage: newLog.damagedQuantity,
+          quantity_damaged: newLog.damagedQuantity,
         }
       ]);
 
