@@ -109,7 +109,7 @@ export default function ProductionLoggingPage() {
     localStorage.setItem('ceramic_production_logs', JSON.stringify(updatedLogs));
 
     try {
-      const response = await fetch('https://nonlayered-willene-wrier.ngrok-free.dev/webhook/a09c7a43-ac5c-462b-b320-27ea44332154', {
+      const response = await fetch('https://nonlayered-willene-wrier.ngrok-free.dev/webhook-test/a09c7a43-ac5c-462b-b320-27ea44332154', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
