@@ -140,7 +140,12 @@ export default function ProductionLoggingPage() {
       ]);
 
     if (supabaseError) {
-      console.error('Supabase save error:', supabaseError);
+      console.error('Supabase save error details:', {
+        message: supabaseError.message,
+        details: supabaseError.details,
+        hint: supabaseError.hint,
+        code: supabaseError.code
+      });
     }
 
     try {
