@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Factory, Database, CheckCircle2, AlertCircle, Loader2, Package, Trash2, TrendingUp, Download, Calendar } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
 
 const FACTORIES = [
   { id: 'f1', name: 'Factory 1 - Gujrat' },
@@ -64,16 +65,34 @@ export default function ProductionLoggingPage() {
     setErrors(newErrors);
   }, [formData]);
 
-  // Load logs from localStorage on mount
+  // Load logs from Supabase on mount
   useEffect(() => {
-    const savedLogs = localStorage.getItem('ceramic_production_logs');
-    if (savedLogs) {
-      try {
-        setLogs(JSON.parse(savedLogs));
-      } catch (e) {
-        console.error('Failed to parse logs', e);
+    async function fetchLogs() {
+      const { data, error } = await supabase
+        .from('production_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching logs from Supabase:', error);
+        // Fallback to localStorage if Supabase fails
+        const savedLogs = localStorage.getItem('ceramic_production_logs');
+        if (savedLogs) setLogs(JSON.parse(savedLogs));
+      } else if (data) {
+        // Map database fields to our interface
+        const mappedLogs: ProductionLog[] = data.map(item => ({
+          factoryName: item.factory_name,
+          batchType: item.batch_type,
+          goodQuantity: item.good_quantity,
+          damagedQuantity: item.damaged_quantity,
+          timestamp: item.created_at
+        }));
+        setLogs(mappedLogs);
+        localStorage.setItem('ceramic_production_logs', JSON.stringify(mappedLogs));
       }
     }
+
+    fetchLogs();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,6 +126,22 @@ export default function ProductionLoggingPage() {
     const updatedLogs = [newLog, ...logs];
     setLogs(updatedLogs);
     localStorage.setItem('ceramic_production_logs', JSON.stringify(updatedLogs));
+
+    // Save to Supabase
+    const { error: supabaseError } = await supabase
+      .from('production_logs')
+      .insert([
+        {
+          factory_name: newLog.factoryName,
+          batch_type: newLog.batchType,
+          good_quantity: newLog.goodQuantity,
+          damaged_quantity: newLog.damagedQuantity,
+        }
+      ]);
+
+    if (supabaseError) {
+      console.error('Supabase save error:', supabaseError);
+    }
 
     try {
       const response = await fetch('https://nonlayered-willene-wrier.ngrok-free.dev/webhook-test/a09c7a43-ac5c-462b-b320-27ea44332154', {
