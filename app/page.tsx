@@ -83,8 +83,8 @@ export default function ProductionLoggingPage() {
         const mappedLogs: ProductionLog[] = data.map(item => ({
           factoryName: item.factory_name,
           batchType: item.batch_type,
-          goodQuantity: item.good_quantity,
-          damagedQuantity: item.damaged_quantity,
+          goodQuantity: item.quantity_good,
+          damagedQuantity: item.quantity_damage,
           timestamp: item.created_at
         }));
         setLogs(mappedLogs);
@@ -134,8 +134,8 @@ export default function ProductionLoggingPage() {
         {
           factory_name: newLog.factoryName,
           batch_type: newLog.batchType,
-          good_quantity: newLog.goodQuantity,
-          damaged_quantity: newLog.damagedQuantity,
+          quantity_good: newLog.goodQuantity,
+          quantity_damage: newLog.damagedQuantity,
         }
       ]);
 
