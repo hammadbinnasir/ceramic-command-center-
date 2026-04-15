@@ -146,6 +146,7 @@ export default function ProductionLoggingPage() {
         hint: supabaseError.hint,
         code: supabaseError.code
       });
+      alert(`Supabase Error: ${supabaseError.message}`);
     }
 
     try {
