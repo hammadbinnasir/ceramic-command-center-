@@ -149,7 +149,8 @@ export default function ProductionLoggingPage() {
     }
 
     try {
-      const response = await fetch('https://nonlayered-willene-wrier.ngrok-free.dev/webhook/a09c7a43-ac5c-462b-b320-27ea44332154', {
+      const webhookUrl = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'https://nonlayered-willene-wrier.ngrok-free.dev/webhook/a09c7a43-ac5c-462b-b320-27ea44332154';
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
