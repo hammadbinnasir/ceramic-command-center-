@@ -16,6 +16,8 @@ interface ProductionLog {
   batchType: string;
   goodQuantity: number;
   damagedQuantity: number;
+  operatorName: string;
+  shiftType: string;
   timestamp: string;
 }
 
@@ -25,6 +27,8 @@ export default function ProductionLoggingPage() {
     batchType: '',
     goodQuantity: '',
     damagedQuantity: '',
+    operatorName: '',
+    shiftType: '',
   });
 
   const [errors, setErrors] = useState<{ [key in keyof typeof formData]?: string }>({});
@@ -85,6 +89,8 @@ export default function ProductionLoggingPage() {
           batchType: item.batch_type,
           goodQuantity: item.quantity_good,
           damagedQuantity: item.quantity_damaged,
+          operatorName: item.operator_name || 'N/A',
+          shiftType: item.shift_type || 'N/A',
           timestamp: item.created_at
         }));
         setLogs(mappedLogs);
@@ -114,12 +120,32 @@ export default function ProductionLoggingPage() {
 
     setStatus('loading');
     
+    const goodVal = Number(formData.goodQuantity);
+    const damagedVal = Number(formData.damagedQuantity);
+    const totalUnits = goodVal + damagedVal;
+
+    // Confirmation Step
+    const confirmed = window.confirm(
+      `Confirm Production Log:\n\n` +
+      `Operator: ${formData.operatorName}\n` +
+      `Shift: ${formData.shiftType}\n` +
+      `Total Units: ${totalUnits.toLocaleString()}\n\n` +
+      `Proceed with this entry?`
+    );
+
+    if (!confirmed) {
+      setStatus('idle');
+      return;
+    }
+
     const newLog: ProductionLog = {
       factoryName: formData.factoryName,
       batchType: formData.batchType,
+      operatorName: formData.operatorName,
+      shiftType: formData.shiftType,
       timestamp: new Date().toISOString(),
-      goodQuantity: Number(formData.goodQuantity),
-      damagedQuantity: Number(formData.damagedQuantity),
+      goodQuantity: goodVal,
+      damagedQuantity: damagedVal,
     };
 
     // Optimistic / Local-first approach: Always save locally
@@ -136,6 +162,8 @@ export default function ProductionLoggingPage() {
           batch_type: newLog.batchType,
           quantity_good: newLog.goodQuantity,
           quantity_damaged: newLog.damagedQuantity,
+          operator_name: newLog.operatorName,
+          shift_type: newLog.shiftType,
         }
       ]);
 
@@ -166,6 +194,8 @@ export default function ProductionLoggingPage() {
           batchType: '',
           goodQuantity: '',
           damagedQuantity: '',
+          operatorName: '',
+          shiftType: '',
         });
         setErrors({});
         setTimeout(() => setStatus('idle'), 5000);
@@ -271,21 +301,54 @@ export default function ProductionLoggingPage() {
         <section className="space-y-6">
           <div className="bg-[#0f172a] border border-[#334155] rounded-xl p-8 shadow-2xl shadow-black/20">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
+               <div className="space-y-2">
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] ml-1">
-                  Factory Name
+                  Operator Name
                 </label>
-                <select
-                  value={formData.factoryName}
-                  onChange={(e) => setFormData({ ...formData, factoryName: e.target.value })}
-                  className="w-full bg-[#1e293b] border border-[#334155] rounded-md px-4 py-3 text-[#f8fafc] text-sm focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
-                >
-                  <option value="" disabled>Select a factory...</option>
-                  {FACTORIES.map((f) => (
-                    <option key={f.id} value={f.name}>{f.name}</option>
-                  ))}
-                </select>
-                {errors.factoryName && <p className="text-rose-500 text-[10px] mt-1 font-medium">{errors.factoryName}</p>}
+                <input
+                  type="text"
+                  placeholder="Your full name"
+                  value={formData.operatorName}
+                  onChange={(e) => setFormData({ ...formData, operatorName: e.target.value })}
+                  className="w-full bg-[#1e293b] border border-[#334155] rounded-md px-4 py-3 text-[#f8fafc] text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#3b82f6] transition-colors"
+                />
+                {errors.operatorName && <p className="text-rose-500 text-[10px] mt-1 font-medium">{errors.operatorName}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] ml-1">
+                    Factory Name
+                  </label>
+                  <select
+                    value={formData.factoryName}
+                    onChange={(e) => setFormData({ ...formData, factoryName: e.target.value })}
+                    className="w-full bg-[#1e293b] border border-[#334155] rounded-md px-4 py-3 text-[#f8fafc] text-sm focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select a factory...</option>
+                    {FACTORIES.map((f) => (
+                      <option key={f.id} value={f.name}>{f.name}</option>
+                    ))}
+                  </select>
+                  {errors.factoryName && <p className="text-rose-500 text-[10px] mt-1 font-medium">{errors.factoryName}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#94a3b8] ml-1">
+                    Shift Type
+                  </label>
+                  <select
+                    value={formData.shiftType}
+                    onChange={(e) => setFormData({ ...formData, shiftType: e.target.value })}
+                    className="w-full bg-[#1e293b] border border-[#334155] rounded-md px-4 py-3 text-[#f8fafc] text-sm focus:outline-none focus:border-[#3b82f6] transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select shift...</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Evening">Evening</option>
+                    <option value="Night">Night</option>
+                  </select>
+                  {errors.shiftType && <p className="text-rose-500 text-[10px] mt-1 font-medium">{errors.shiftType}</p>}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -335,8 +398,17 @@ export default function ProductionLoggingPage() {
 
               <button
                 type="submit"
-                disabled={status === 'loading'}
-                className="w-full bg-[#3b82f6] hover:bg-blue-500 disabled:bg-slate-800 disabled:cursor-not-allowed text-white font-bold py-4 rounded-md transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)] active:scale-[0.99] flex items-center justify-center gap-2 uppercase text-sm tracking-wide"
+                disabled={
+                  status === 'loading' || 
+                  !formData.operatorName || 
+                  !formData.shiftType || 
+                  !formData.factoryName || 
+                  !formData.batchType || 
+                  formData.goodQuantity === '' || 
+                  formData.damagedQuantity === '' ||
+                  Object.keys(errors).length > 0
+                }
+                className="w-full bg-[#3b82f6] hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-md transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)] active:scale-[0.99] flex items-center justify-center gap-2 uppercase text-sm tracking-wide"
               >
                 {status === 'loading' ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
